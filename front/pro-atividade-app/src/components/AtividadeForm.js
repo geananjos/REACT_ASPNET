@@ -89,11 +89,11 @@ export default function AtividadeForm(props) {
           {
             atividade.id === 0 ?
             <button  
-              className='btn btn-outline-secondary' 
+              className='btn btn-outline-success' 
               type='submit'
               >
                 <i className='fas fa-plus me-2'></i>
-                Atividade
+                Salvar
             </button>
             :
             <>
