@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ProAtividade.Data.Context;
 using ProAtividade.Domain.Entities;
+using ProAtividade.Domain.Interfaces.Services;
 
 namespace ProAtividade.API.Controllers
 {
@@ -12,55 +15,72 @@ namespace ProAtividade.API.Controllers
     public class AtividadeController : ControllerBase
     {
         private readonly DataContext _context;
-        public AtividadeController(DataContext context)
+        private readonly IAtividadeService _atividadeService;
+        public AtividadeController(IAtividadeService atividadeService)
         {
-            _context = context;
+            _atividadeService = atividadeService;
         }
 
         [HttpGet]
-        public IEnumerable<Atividade> Get()
+        public async Task<IActionResult> Get()
         {
-            return _context.Atividades;
+            try
+            {
+                var atividades = await _atividadeService.PegarTodasAtividadesAsync();
+                if(atividades == null) return NoContent();
+
+                return Ok(atividades);
+            }
+            catch (System.Exception ex)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao tentar recuperar atividades {ex.Message}");
+            }
         }
 
         [HttpGet("{id}")]
-        public Atividade Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            return _context.Atividades.FirstOrDefault(atividade => atividade.Id == id);
+            try
+            {
+                var atividade = await _atividadeService.PegarAtividadePorIdAsync(id);
+                if(atividade == null) return NoContent();
+
+                return Ok(atividade);
+            }
+            catch (System.Exception ex)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, 
+                    $"Erro ao tentar recuperar atividade com id: {id}. Erro: {ex.Message}");
+            }
         }
 
         [HttpPost]
-        public Atividade Post(Atividade atividade)
+        public async Task<IActionResult> Post(Atividade model)
         {
-            _context.Atividades.Add(atividade);
-            if (_context.SaveChanges() > 0)
-                return _context.Atividades.FirstOrDefault(ativ => ativ.Id == atividade.Id);
-            else
-                throw new Exception("Não foi possível adicionar uma atividade");
+           try
+            {
+                var atividade = await _atividadeService.AtualizarAtividade(model);
+                if(atividade == null) return NoContent();
+
+                return Ok(atividade);
+            }
+            catch (System.Exception ex)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, 
+                    $"Erro ao tentar adicionar atividade. Erro: {ex.Message}");
+            }
         }
 
-        [HttpPut("{id}")]
-        public Atividade Put(int id, Atividade atividade)
-        {
-            if (atividade.Id != id) throw new Exception("Você está tentando atualizar a atividade errada.");
+        // [HttpPut("{id}")]
+        // public Atividade Put(int id, Atividade atividade)
+        // {
+            
+        // }
 
-            _context.Update(atividade);
-            if (_context.SaveChanges() > 0)
-                return _context.Atividades.FirstOrDefault(atividade => atividade.Id == id);
-            else
-                return new Atividade();
-        }
-
-        [HttpDelete("{id}")]
-        public bool Delete(int id)
-        {
-            var atividade = _context.Atividades.FirstOrDefault(atividade => atividade.Id == id);
-            if (atividade == null)
-                throw new Exception("Você está tentando deletar uma atividade que não existe.");
-
-            _context.Remove(atividade);
-
-            return _context.SaveChanges() > 0;
-        }
+        // [HttpDelete("{id}")]
+        // public bool Delete(int id)
+        // {
+            
+        // }
     }
 }
