@@ -27,7 +27,7 @@ namespace ProAtividade.API.Controllers
             try
             {
                 var atividades = await _atividadeService.PegarTodasAtividadesAsync();
-                if(atividades == null) return NoContent();
+                if (atividades == null) return NoContent();
 
                 return Ok(atividades);
             }
@@ -43,13 +43,13 @@ namespace ProAtividade.API.Controllers
             try
             {
                 var atividade = await _atividadeService.PegarAtividadePorIdAsync(id);
-                if(atividade == null) return NoContent();
+                if (atividade == null) return NoContent();
 
                 return Ok(atividade);
             }
             catch (System.Exception ex)
             {
-                return this.StatusCode(StatusCodes.Status500InternalServerError, 
+                return this.StatusCode(StatusCodes.Status500InternalServerError,
                     $"Erro ao tentar recuperar atividade com id: {id}. Erro: {ex.Message}");
             }
         }
@@ -57,30 +57,63 @@ namespace ProAtividade.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Post(Atividade model)
         {
-           try
+            try
             {
-                var atividade = await _atividadeService.AtualizarAtividade(model);
-                if(atividade == null) return NoContent();
+                var atividade = await _atividadeService.AdicionarAtividade(model);
+                if (atividade == null) return NoContent();
 
                 return Ok(atividade);
             }
             catch (System.Exception ex)
             {
-                return this.StatusCode(StatusCodes.Status500InternalServerError, 
+                return this.StatusCode(StatusCodes.Status500InternalServerError,
                     $"Erro ao tentar adicionar atividade. Erro: {ex.Message}");
             }
         }
 
-        // [HttpPut("{id}")]
-        // public Atividade Put(int id, Atividade atividade)
-        // {
-            
-        // }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Put(int id, Atividade model)
+        {
+            try
+            {
+                if (model.Id != id)
+                    this.StatusCode(StatusCodes.Status409Conflict, "Voce esta tentando atualizar a atividade errada");
 
-        // [HttpDelete("{id}")]
-        // public bool Delete(int id)
-        // {
-            
-        // }
+                var atividade = await _atividadeService.AtualizarAtividade(model);
+                if (atividade == null) return NoContent();
+
+                return Ok(atividade);
+            }
+            catch (System.Exception ex)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError,
+                    $"Erro ao tentar atualizar atividade com id: {id}. Erro: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var atividade = await _atividadeService.PegarAtividadePorIdAsync(id);
+                if (atividade == null)
+                    this.StatusCode(StatusCodes.Status409Conflict, "Voce esta tentando deletar uma atividade que nao existe");
+
+                if (await _atividadeService.DeletarAtividade(id))
+                {
+                    return Ok(new { message = "Deletado" });
+                }
+                else
+                {
+                    return BadRequest("Ocorre um problema ao tentar deletar a atividade");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError,
+                    $"Erro ao tentar deletar atividade com id: {id}. Erro: {ex.Message}");
+            }
+        }
     }
 }

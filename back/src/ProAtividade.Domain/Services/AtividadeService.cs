@@ -34,7 +34,7 @@ namespace ProAtividade.Domain.Services
             if (model.DataConclusao != null)
                 throw new Exception("Nao e possivel alterar uma atividade concluida.");
 
-            if (await _atividadeRepo.PegaPorIdAsync(model.Id) == null)
+            if (await _atividadeRepo.PegaPorIdAsync(model.Id) != null)
             {
                 _atividadeRepo.Atualizar(model);
                 if (await _atividadeRepo.SalvarMudancasAsync())
